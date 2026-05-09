@@ -134,7 +134,15 @@ public class Cell : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        Debug.Log($"[Cell] Click at {gridPosition} | state={state} | isStar={isStar}");
+        // Forward click to the cell determined by GridManager when raycasts
+        // and visual rects disagree. No verbose diagnostics here.
+        var mapped = GridManager.Instance?.GetCellFromScreenPoint(eventData.position, eventData.pressEventCamera);
+        if (mapped != null && mapped != this)
+        {
+            AudioManager.Instance?.PlayClick();
+            GameManager.Instance?.OnCellClicked(mapped);
+            return;
+        }
 
         // Hidden = normal undiscovered cell
         // Peeked = star exposed by AreaReveal ability — still needs to be clicked in order

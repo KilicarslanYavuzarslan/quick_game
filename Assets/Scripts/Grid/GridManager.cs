@@ -160,6 +160,72 @@ public class GridManager : MonoBehaviour
     public Vector2Int GridSize => levelData != null ? levelData.gridSize : Vector2Int.zero;
 
     /// <summary>
+    /// Maps a screen point to the Cell under that point according to the
+    /// GridLayoutGroup arrangement. Returns null if the point is outside
+    /// the grid or on no cell.
+    /// </summary>
+    public Cell GetCellFromScreenPoint(Vector2 screenPoint, Camera uiCamera = null)
+    {
+        if (grid == null || gridContainer == null || levelData == null) return null;
+
+        var layout = gridContainer.GetComponent<UnityEngine.UI.GridLayoutGroup>();
+        int cols = levelData.gridSize.x;
+        int rows = levelData.gridSize.y;
+
+        // Convert screen -> local point in gridContainer space
+        Vector2 localPoint;
+        if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(gridContainer, screenPoint, uiCamera, out localPoint))
+            return null;
+
+        Rect rect = gridContainer.rect;
+
+        // Use GridLayoutGroup metrics if available to compute cell bounds
+        if (layout != null)
+        {
+            var padding = layout.padding;
+            Vector2 cellSize = layout.cellSize;
+            Vector2 spacing = layout.spacing;
+
+            // top-left origin in local coordinates
+            float startX = rect.xMin + padding.left;
+            float startY = rect.yMax - padding.top;
+
+            for (int y = 0; y < rows; y++)
+            {
+                for (int x = 0; x < cols; x++)
+                {
+                    float cellXMin = startX + x * (cellSize.x + spacing.x);
+                    float cellXMax = cellXMin + cellSize.x;
+
+                    float cellYMax = startY - y * (cellSize.y + spacing.y);
+                    float cellYMin = cellYMax - cellSize.y;
+
+                    if (localPoint.x >= cellXMin && localPoint.x <= cellXMax &&
+                        localPoint.y >= cellYMin && localPoint.y <= cellYMax)
+                    {
+                        // grid uses x=col, y=row
+                        return GetCell(x, y);
+                    }
+                }
+            }
+        }
+        else
+        {
+            // Fallback: split rect evenly
+            float px = (localPoint.x - rect.xMin) / rect.width;
+            float py = (rect.yMax - localPoint.y) / rect.height; // top-down
+
+            int col = Mathf.FloorToInt(px * cols);
+            int row = Mathf.FloorToInt(py * rows);
+
+            if (col >= 0 && col < cols && row >= 0 && row < rows)
+                return GetCell(col, row);
+        }
+
+        return null;
+    }
+
+    /// <summary>
     /// Returns the LevelData asset this grid was built from.
     /// </summary>
     public LevelData LevelData => levelData;

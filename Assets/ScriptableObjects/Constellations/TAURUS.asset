@@ -10,16 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8250e44e9e5e90b40a4366c8da9dccaa, type: 3}
-  m_Name: Orion
+  m_Name: TAURUS
   m_EditorClassIdentifier: Assembly-CSharp::ConstellationData
-  constellationName: Orion
-  color: {r: 0.29803923, g: 0.6862745, b: 0.3137255, a: 1}
+  constellationName: TAURUS
+  color: {r: 0.4862745, g: 0.43529412, b: 0.87058824, a: 1}
   starPositions:
-  - {x: 1, y: 1}
-  - {x: 2, y: 3}
-  - {x: 4, y: 2}
-  - {x: 6, y: 5}
-  - {x: 7, y: 7}
-  abilityType: 1
+  - {x: 0, y: 0}
+  - {x: 0, y: 1}
+  - {x: 0, y: 2}
+  - {x: 0, y: 3}
+  - {x: 0, y: 4}
+  abilityType: 2
   abilityRadius: 1
   completionVideo: {fileID: 0}
