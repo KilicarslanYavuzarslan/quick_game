@@ -37,12 +37,30 @@ public class GameManager : MonoBehaviour
 
     // ── Constellation Tracking ────────────────────────────────────────────────
 
-    private int[] nextStarIndex;
-    private int activeConstellationIndex = 0;
+    private int[]  nextStarIndex;
+    private bool[] constellationCompleted;
+    private int    activeConstellationIndex = 0;
 
     /// <summary>The constellation the player is currently hunting.</summary>
     public ConstellationData ActiveConstellation =>
         levelData.constellations[activeConstellationIndex];
+
+    /// <summary>
+    /// Returns true if any completed constellation has the ReverseCompass ability.
+    /// Used by CompassController — the effect persists for the rest of the game
+    /// once that constellation is fully collected.
+    /// </summary>
+    public bool IsReverseCompassTriggered()
+    {
+        if (levelData == null || constellationCompleted == null) return false;
+        for (int i = 0; i < levelData.constellations.Length; i++)
+        {
+            if (constellationCompleted[i] &&
+                levelData.constellations[i].abilityType == ConstellationAbilityType.ReverseCompass)
+                return true;
+        }
+        return false;
+    }
 
     // ── Unity Lifecycle ───────────────────────────────────────────────────────
 
@@ -63,8 +81,9 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        nextStarIndex = new int[levelData.constellations.Length];
-        MistakeCount  = 0;
+        nextStarIndex         = new int[levelData.constellations.Length];
+        constellationCompleted = new bool[levelData.constellations.Length];
+        MistakeCount          = 0;
         activeConstellationIndex = 0;
         State = GameState.Playing;
 
@@ -133,7 +152,6 @@ public class GameManager : MonoBehaviour
             c.constellationName);
 
         CheckConstellationComplete(constellationIndex, cell.gridPosition);
-        CheckWinCondition();
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -184,6 +202,7 @@ public class GameManager : MonoBehaviour
         // Not done yet
         if (nextStarIndex[constellationIndex] < constellation.StarCount) return;
 
+        constellationCompleted[constellationIndex] = true;
         Debug.Log($"[GameManager] ⭐ Constellation complete: {constellation.constellationName}");
 
         AudioManager.Instance?.PlayConstellationComplete();
@@ -197,8 +216,39 @@ public class GameManager : MonoBehaviour
         }
         // ReverseCompass is passive (handled by CompassController each frame) — no action needed here
 
-        // ── Play completion video (if assigned) ───────────────────────────────
-        ConstellationCompletePanel.Instance?.Play(constellation);
+        // ── Check if this was the final constellation ─────────────────────────
+        bool allDone = IsAllConstellationsComplete();
+
+        // Pass a win callback only if this is the last one — the panel fires it
+        // after the video ends, guaranteeing the win screen never interrupts the video
+        System.Action onVideoComplete = allDone ? (System.Action)TriggerWin : null;
+
+        if (ConstellationCompletePanel.Instance != null)
+        {
+            ConstellationCompletePanel.Instance.Play(constellation, onVideoComplete);
+        }
+        else if (allDone)
+        {
+            // No panel in scene — trigger win immediately
+            TriggerWin();
+        }
+    }
+
+    private bool IsAllConstellationsComplete()
+    {
+        for (int i = 0; i < levelData.constellations.Length; i++)
+            if (!constellationCompleted[i]) return false;
+        return true;
+    }
+
+    private void TriggerWin()
+    {
+        State = GameState.Won;
+        int finalScore = ScoreManager.Instance != null ? ScoreManager.Instance.Score : 0;
+        bool perfect   = MistakeCount == 0;
+        Debug.Log($"[GameManager] You Win! Score={finalScore} Perfect={perfect}");
+        AudioManager.Instance?.PlayWin();
+        UIManager.Instance?.ShowWinPanel(finalScore, perfect);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -216,27 +266,6 @@ public class GameManager : MonoBehaviour
 
         CompassController.Instance?.UpdateTarget();
         HintSystem.Instance?.RefreshAllHints();
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Win Condition
-    // ─────────────────────────────────────────────────────────────────────────
-
-    private void CheckWinCondition()
-    {
-        for (int i = 0; i < levelData.constellations.Length; i++)
-        {
-            if (nextStarIndex[i] < levelData.constellations[i].StarCount)
-                return;
-        }
-
-        State = GameState.Won;
-        int finalScore = ScoreManager.Instance != null ? ScoreManager.Instance.Score : 0;
-        bool perfect   = MistakeCount == 0;
-        Debug.Log($"[GameManager] You Win! Score={finalScore} Perfect={perfect}");
-
-        AudioManager.Instance?.PlayWin();
-        UIManager.Instance?.ShowWinPanel(finalScore, perfect);
     }
 
     // ─────────────────────────────────────────────────────────────────────────

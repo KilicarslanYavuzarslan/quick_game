@@ -180,8 +180,7 @@ public class CompassController : MonoBehaviour
 
     private bool IsReverseCompassActive()
     {
-        return GameManager.Instance?.ActiveConstellation?.abilityType
-               == ConstellationAbilityType.ReverseCompass;
+        return GameManager.Instance?.IsReverseCompassTriggered() ?? false;
     }
 
     // ─────────────────────────────────────────────────────────────────────────

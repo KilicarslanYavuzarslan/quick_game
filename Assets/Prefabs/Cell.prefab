@@ -281,8 +281,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -5104267809081958634, guid: 35603e4d19470d24d8bf7e84a1f36eeb, type: 3}
-  m_Type: 0
+  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
+  m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -355,15 +355,15 @@ MonoBehaviour:
   backgroundImage: {fileID: 1182979172153142177}
   starImage: {fileID: 4409125924530008904}
   hintText: {fileID: 7119981169964070724}
-  hiddenSprite: {fileID: 0}
-  revealedSprite: {fileID: 0}
-  collectedSprite: {fileID: 0}
-  failedSprite: {fileID: 0}
+  hiddenSprite: {fileID: -5104267809081958634, guid: 35603e4d19470d24d8bf7e84a1f36eeb, type: 3}
+  revealedSprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
+  collectedSprite: {fileID: -5104267809081958634, guid: 35603e4d19470d24d8bf7e84a1f36eeb, type: 3}
+  failedSprite: {fileID: -5104267809081958634, guid: 35603e4d19470d24d8bf7e84a1f36eeb, type: 3}
   hintColor1: {r: 0.937, g: 0.624, b: 0.153, a: 1}
   hintColor2: {r: 0.937, g: 0.537, b: 0.184, a: 1}
   hintColor3: {r: 0.565, g: 0.565, b: 0.565, a: 1}
-  hiddenColor: {r: 0.102, g: 0.102, b: 0.18, a: 1}
-  revealedColor: {r: 0.141, g: 0.141, b: 0.235, a: 1}
-  collectedColor: {r: 0.102, g: 0.102, b: 0.18, a: 1}
+  hiddenColor: {r: 1, g: 1, b: 1, a: 1}
+  revealedColor: {r: 1, g: 1, b: 1, a: 1}
+  collectedColor: {r: 1, g: 1, b: 1, a: 1}
   failedColor: {r: 0.886, g: 0.294, b: 0.29, a: 1}
   peekedStarColor: {r: 1, g: 0.92, b: 0.4, a: 0.75}
