@@ -22,4 +22,4 @@ MonoBehaviour:
   - {x: 0, y: 4}
   abilityType: 2
   abilityRadius: 1
-  completionVideo: {fileID: 0}
+  completionVideo: {fileID: 32900000, guid: 8b6dae5fd7e563e439e0ca5a5fba54d5, type: 3}

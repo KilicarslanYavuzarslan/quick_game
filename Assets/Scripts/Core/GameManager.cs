@@ -102,6 +102,11 @@ public class GameManager : MonoBehaviour
     {
         if (State != GameState.Playing) return;
 
+        // Reject clicks while a constellation video is playing (timeScale = 0).
+        // This is a safety net; the CanvasGroup on ConstellationCompletePanel
+        // should block raycasts, but belt-and-suspenders doesn't hurt here.
+        if (Time.timeScale == 0f) return;
+
         // ── Empty cell (or revealed-but-not-star) ─────────────────────────────
         if (!cell.isStar)
         {
@@ -207,20 +212,29 @@ public class GameManager : MonoBehaviour
 
         AudioManager.Instance?.PlayConstellationComplete();
 
+        // ── DEBUG: ability check ──────────────────────────────────────────────
+        Debug.Log($"[GameManager] Ability type: {constellation.abilityType}");
+
         // ── Fire special ability ──────────────────────────────────────────────
         if (constellation.abilityType == ConstellationAbilityType.AreaReveal)
         {
+            Debug.Log($"[GameManager] AreaReveal triggered at {lastCollectedPos} radius {constellation.abilityRadius}");
             GridManager.Instance?.RevealArea(lastCollectedPos, constellation.abilityRadius);
             HintSystem.Instance?.RefreshAllHints();
-            Debug.Log($"[GameManager] AreaReveal triggered at {lastCollectedPos} radius {constellation.abilityRadius}");
         }
-        // ReverseCompass is passive (handled by CompassController each frame) — no action needed here
+        else if (constellation.abilityType == ConstellationAbilityType.ReverseCompass)
+        {
+            Debug.Log($"[GameManager] ReverseCompass now active — IsReverseCompassTriggered={IsReverseCompassTriggered()}");
+            // Passive — CompassController polls IsReverseCompassTriggered() each frame
+            CompassController.Instance?.UpdateTarget(); // force immediate color + angle update
+        }
 
-        // ── Check if this was the final constellation ─────────────────────────
+        // ── DEBUG: video + panel check ────────────────────────────────────────
         bool allDone = IsAllConstellationsComplete();
+        Debug.Log($"[GameManager] AllDone={allDone} | " +
+                  $"Panel={(ConstellationCompletePanel.Instance != null ? "found" : "NULL — not in scene!")} | " +
+                  $"VideoClip={(constellation.completionVideo != null ? constellation.completionVideo.name : "NULL — not assigned in SO!")}");
 
-        // Pass a win callback only if this is the last one — the panel fires it
-        // after the video ends, guaranteeing the win screen never interrupts the video
         System.Action onVideoComplete = allDone ? (System.Action)TriggerWin : null;
 
         if (ConstellationCompletePanel.Instance != null)
@@ -229,7 +243,6 @@ public class GameManager : MonoBehaviour
         }
         else if (allDone)
         {
-            // No panel in scene — trigger win immediately
             TriggerWin();
         }
     }

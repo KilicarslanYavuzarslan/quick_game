@@ -53,10 +53,22 @@ public class ConstellationCompletePanel : MonoBehaviour
 
     private RenderTexture renderTexture;
     private Action        onComplete;
+    private CanvasGroup   canvasGroup;
 
     private void Start()
     {
-        if (panel != null) panel.SetActive(false);
+        if (panel != null)
+        {
+            panel.SetActive(false);
+
+            // Ensure a CanvasGroup exists on the panel root so we can block raycasts
+            // while the video plays (prevents clicking cells/buttons through the overlay).
+            canvasGroup = panel.GetComponent<CanvasGroup>();
+            if (canvasGroup == null)
+                canvasGroup = panel.AddComponent<CanvasGroup>();
+
+            canvasGroup.blocksRaycasts = false; // default: not blocking
+        }
 
         if (videoPlayer != null && videoDisplay != null)
         {
@@ -99,6 +111,7 @@ public class ConstellationCompletePanel : MonoBehaviour
             constellationNameText.text = constellation.constellationName;
 
         panel.SetActive(true);
+        if (canvasGroup != null) canvasGroup.blocksRaycasts = true;
         Time.timeScale = 0f;
 
         videoPlayer.clip = constellation.completionVideo;
@@ -123,6 +136,10 @@ public class ConstellationCompletePanel : MonoBehaviour
 
     private void FireCallback()
     {
+        // Re-enable input before invoking the callback so the win panel (if shown)
+        // is immediately interactive.
+        if (canvasGroup != null) canvasGroup.blocksRaycasts = false;
+
         var cb = onComplete;
         onComplete = null; // clear before invoking to prevent double-fire
         cb?.Invoke();
