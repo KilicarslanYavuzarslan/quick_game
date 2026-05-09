@@ -365,5 +365,5 @@ MonoBehaviour:
   hiddenColor: {r: 1, g: 1, b: 1, a: 1}
   revealedColor: {r: 1, g: 1, b: 1, a: 1}
   collectedColor: {r: 1, g: 1, b: 1, a: 1}
-  failedColor: {r: 0.886, g: 0.294, b: 0.29, a: 1}
+  failedColor: {r: 1, g: 1, b: 1, a: 1}
   peekedStarColor: {r: 1, g: 0.92, b: 0.4, a: 0.75}
