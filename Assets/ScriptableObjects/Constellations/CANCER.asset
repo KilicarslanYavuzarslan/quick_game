@@ -15,11 +15,15 @@ MonoBehaviour:
   constellationName: CANCER
   color: {r: 0.29803923, g: 0.65630835, b: 0.6862745, a: 1}
   starPositions:
-  - {x: 1, y: 1}
-  - {x: 2, y: 3}
-  - {x: 4, y: 2}
-  - {x: 6, y: 5}
-  - {x: 7, y: 7}
+  - {x: 1, y: 0}
+  - {x: 3, y: 0}
+  - {x: 6, y: 1}
+  - {x: 7, y: 3}
+  - {x: 5, y: 4}
+  - {x: 3, y: 5}
+  - {x: 1, y: 6}
+  - {x: 0, y: 7}
+  - {x: 2, y: 7}
   abilityType: 1
   abilityRadius: 1
   completionVideo: {fileID: 32900000, guid: 4d963e60acb526c4ab44b4301936bf56, type: 3}

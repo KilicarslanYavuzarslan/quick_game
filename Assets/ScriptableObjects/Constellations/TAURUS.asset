@@ -15,11 +15,15 @@ MonoBehaviour:
   constellationName: TAURUS
   color: {r: 0.4862745, g: 0.43529412, b: 0.87058824, a: 1}
   starPositions:
-  - {x: 0, y: 0}
-  - {x: 0, y: 1}
-  - {x: 0, y: 2}
-  - {x: 0, y: 3}
-  - {x: 0, y: 4}
+  - {x: 2, y: 1}
+  - {x: 4, y: 1}
+  - {x: 5, y: 2}
+  - {x: 3, y: 3}
+  - {x: 1, y: 3}
+  - {x: 2, y: 5}
+  - {x: 4, y: 6}
+  - {x: 6, y: 5}
+  - {x: 5, y: 7}
   abilityType: 2
   abilityRadius: 1
   completionVideo: {fileID: 32900000, guid: 8b6dae5fd7e563e439e0ca5a5fba54d5, type: 3}

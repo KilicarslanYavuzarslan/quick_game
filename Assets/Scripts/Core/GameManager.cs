@@ -91,6 +91,7 @@ public class GameManager : MonoBehaviour
                   $"Total stars: {levelData.TotalStarCount} | " +
                   $"Active: {ActiveConstellation.constellationName}");
 
+        HintSystem.Instance?.ResetCharges();
         CompassController.Instance?.UpdateTarget();
     }
 

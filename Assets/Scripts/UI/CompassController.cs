@@ -169,13 +169,29 @@ public class CompassController : MonoBehaviour
 
     /// <summary>
     /// Sets needle to the correct color for the current constellation ability state.
-    /// Gold = normal. Purple = ReverseCompass active.
+    /// Uses the active constellation's color. Darkened if ReverseCompass is active.
     /// Called on target update and after error flash ends.
     /// </summary>
     private void UpdateNeedleColor()
     {
         if (needleImage == null) return;
-        needleImage.color = IsReverseCompassActive() ? reversedColor : normalColor;
+
+        // Get the active constellation's color
+        Color constellationColor = Color.white;
+        if (GameManager.Instance != null && GameManager.Instance.ActiveConstellation != null)
+        {
+            constellationColor = GameManager.Instance.ActiveConstellation.color;
+        }
+
+        // If ReverseCompass is active, darken the color as a warning
+        if (IsReverseCompassActive())
+        {
+            needleImage.color = constellationColor * 0.6f;
+        }
+        else
+        {
+            needleImage.color = constellationColor;
+        }
     }
 
     private bool IsReverseCompassActive()

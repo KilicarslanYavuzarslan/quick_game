@@ -42,6 +42,20 @@ public class ScoreManager : MonoBehaviour
         OnScoreChanged?.Invoke(Score);
     }
 
+    /// <summary>
+    /// Deducts score without allowing it to go below zero.
+    /// Returns the actual amount deducted.
+    /// </summary>
+    public int SpendScore(int amount)
+    {
+        if (amount <= 0) return 0;
+
+        int deducted = Mathf.Min(Score, amount);
+        Score -= deducted;
+        OnScoreChanged?.Invoke(Score);
+        return deducted;
+    }
+
     public void RegisterMistake()
     {
         Mistakes++;

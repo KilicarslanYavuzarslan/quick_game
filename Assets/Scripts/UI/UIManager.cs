@@ -39,6 +39,9 @@ public class UIManager : MonoBehaviour
              "Array order must match LevelData.constellations order.")]
     [SerializeField] private TextMeshProUGUI[] constellationProgressTexts;
 
+    [Tooltip("Optional TMP text that shows remaining hint charges.")]
+    [SerializeField] private TextMeshProUGUI hintChargesText;
+
     private const int MISTAKE_LIMIT = 3; // mirrors GameManager — shown in HUD label
 
     // ── Win Panel ─────────────────────────────────────────────────────────────
@@ -68,6 +71,12 @@ public class UIManager : MonoBehaviour
             ScoreManager.Instance.OnMistakesChanged += UpdateMistakesText;
         }
 
+        if (HintSystem.Instance != null)
+        {
+            HintSystem.Instance.OnHintChargesChanged += UpdateHintChargesText;
+            UpdateHintChargesText(HintSystem.Instance.RemainingHintCharges, 0);
+        }
+
         // Initialise HUD to zero
         UpdateScoreText(0);
         UpdateMistakesText(0);
@@ -81,6 +90,9 @@ public class UIManager : MonoBehaviour
             ScoreManager.Instance.OnScoreChanged    -= UpdateScoreText;
             ScoreManager.Instance.OnMistakesChanged -= UpdateMistakesText;
         }
+
+        if (HintSystem.Instance != null)
+            HintSystem.Instance.OnHintChargesChanged -= UpdateHintChargesText;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -97,6 +109,12 @@ public class UIManager : MonoBehaviour
     {
         if (mistakesText != null)
             mistakesText.text = $"Mistakes: {newMistakes} / {MISTAKE_LIMIT}";
+    }
+
+    private void UpdateHintChargesText(int remaining, int max)
+    {
+        if (hintChargesText != null)
+            hintChargesText.text = max > 0 ? $"Hints: {remaining} / {max}" : "Hints: 0";
     }
 
     /// <summary>
@@ -139,6 +157,20 @@ public class UIManager : MonoBehaviour
             loseMistakesText.text = $"Mistakes: {mistakeCount}";
 
         losePanel.SetActive(true);
+    }
+
+    /// <summary>
+    /// Wire this to a Hint button in the Inspector.
+    /// </summary>
+    public void OnHintClicked()
+    {
+        if (HintSystem.Instance == null)
+        {
+            Debug.LogWarning("[UIManager] HintSystem not found.");
+            return;
+        }
+
+        HintSystem.Instance.TryUseHint();
     }
 
     // ─────────────────────────────────────────────────────────────────────────

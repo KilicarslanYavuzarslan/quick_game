@@ -40,6 +40,13 @@ public class Cell : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler
     [SerializeField] private Image starImage;
     [SerializeField] private TextMeshProUGUI hintText;
 
+    [Header("Hint Settings")]
+    [Tooltip("Font size used for the hint numbers when a cell is Revealed.")]
+    [SerializeField] private int hintFontSize = 48;
+
+    [Tooltip("Optional TMP Font Asset to use for hint numbers. If null, prefab default font is used.")]
+    [SerializeField] private TMPro.TMP_FontAsset hintFont;
+
     // ── Sprites ───────────────────────────────────────────────────────────────
 
     [Header("Sprites (assign in prefab)")]
@@ -74,6 +81,13 @@ public class Cell : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler
 
     private void Start()
     {
+        // Apply configured hint font settings (inspector-overridable)
+        if (hintText != null)
+        {
+            if (hintFont != null) hintText.font = hintFont;
+            hintText.fontSize = hintFontSize;
+        }
+
         UpdateVisuals();
     }
 
@@ -98,6 +112,9 @@ public class Cell : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler
     {
         if (state != CellState.Revealed) return;
         if (hintText == null) return;
+        // Ensure configured font and size are applied whenever a hint is shown
+        if (hintFont != null) hintText.font = hintFont;
+        hintText.fontSize = hintFontSize;
 
         switch (distance)
         {
