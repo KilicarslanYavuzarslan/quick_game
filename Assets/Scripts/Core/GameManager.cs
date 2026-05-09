@@ -4,9 +4,9 @@ using UnityEngine;
 /// Central game controller. Owns game state, tracks star collection progress
 /// per constellation, handles all click resolution, and detects win/lose.
 ///
-/// Other systems (CompassController, HintSystem, UIManager, ScoreManager)
-/// are called from here via Instance references — stubs are commented out
-/// and activated step by step as those systems are built.
+/// Calls out to: CompassController, HintSystem, AudioManager, UIManager,
+/// ConstellationCompletePanel, and GridManager (for AreaReveal ability).
+/// ScoreManager wiring is reserved for Step 9.
 /// </summary>
 public class GameManager : MonoBehaviour
 {
@@ -32,16 +32,12 @@ public class GameManager : MonoBehaviour
 
     // ── Mistake Tracking ──────────────────────────────────────────────────────
 
-    // Player is allowed this many misclicks. Game over when exceeded.
     private const int MISTAKE_LIMIT = 2;
     public int MistakeCount { get; private set; }
 
     // ── Constellation Tracking ────────────────────────────────────────────────
 
-    // nextStarIndex[i] = index of the next star to collect in constellation i
-    // Advances on correct collection AND when a target star is Failed (skips it)
     private int[] nextStarIndex;
-
     private int activeConstellationIndex = 0;
 
     /// <summary>The constellation the player is currently hunting.</summary>
@@ -54,7 +50,6 @@ public class GameManager : MonoBehaviour
     {
         InitGame();
     }
-
 
     // ─────────────────────────────────────────────────────────────────────────
     // Initialisation
@@ -77,7 +72,6 @@ public class GameManager : MonoBehaviour
                   $"Total stars: {levelData.TotalStarCount} | " +
                   $"Active: {ActiveConstellation.constellationName}");
 
-        // Now that state is ready, push the first target to the compass
         CompassController.Instance?.UpdateTarget();
     }
 
@@ -89,7 +83,7 @@ public class GameManager : MonoBehaviour
     {
         if (State != GameState.Playing) return;
 
-        // ── Empty cell ────────────────────────────────────────────────────────
+        // ── Empty cell (or revealed-but-not-star) ─────────────────────────────
         if (!cell.isStar)
         {
             cell.SetState(Cell.CellState.Revealed);
@@ -120,18 +114,18 @@ public class GameManager : MonoBehaviour
     {
         cell.SetState(Cell.CellState.Collected);
         nextStarIndex[constellationIndex]++;
-        AdvancePastFailedStars(constellationIndex); // skip any previously-failed stars in sequence
+        AdvancePastFailedStars(constellationIndex);
 
         Debug.Log($"[GameManager] ✓ Correct! {cell.constellation.constellationName} " +
                   $"star {cell.starIndex + 1} collected.");
 
-        // ScoreManager.Instance?.AddScore(100);                         // Step 9
-        // AudioManager.Instance?.PlayCorrect();                         // Step 10
-        // UIManager.Instance?.UpdateProgress(constellationIndex,        // Step 9
-        //     nextStarIndex[constellationIndex]);
+        AudioManager.Instance?.PlayCorrect();
         HintSystem.Instance?.RefreshAllHints();
         CompassController.Instance?.UpdateTarget();
 
+        // ScoreManager.Instance?.AddScore(100);   // Step 9
+
+        CheckConstellationComplete(constellationIndex, cell.gridPosition);
         CheckWinCondition();
     }
 
@@ -147,8 +141,6 @@ public class GameManager : MonoBehaviour
         Debug.Log($"[GameManager] ✗ Wrong! {cell.constellation.constellationName} " +
                   $"star {cell.starIndex + 1} | Mistakes: {MistakeCount}/{MISTAKE_LIMIT + 1}");
 
-        // If the failed star WAS the current target of its constellation,
-        // advance that constellation's index so the target skips forward.
         if (wasCurrentTarget)
         {
             nextStarIndex[constellationIndex]++;
@@ -156,9 +148,10 @@ public class GameManager : MonoBehaviour
             CompassController.Instance?.UpdateTarget();
         }
 
+        AudioManager.Instance?.PlayWrong();
         CompassController.Instance?.PlayErrorFeedback();
-        // AudioManager.Instance?.PlayWrong();                           // Step 10
-        // ScoreManager.Instance?.RegisterMistake();                     // Step 9
+
+        // ScoreManager.Instance?.RegisterMistake();   // Step 9
 
         if (MistakeCount > MISTAKE_LIMIT)
         {
@@ -169,12 +162,42 @@ public class GameManager : MonoBehaviour
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Constellation Switching (called by ConstellationSelector — Step 6)
+    // Constellation Complete
     // ─────────────────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Switches the active constellation. Compass and hints update immediately.
+    /// Called after a correct star is collected. Checks if this constellation
+    /// is now fully complete and fires its special ability and completion video.
+    /// lastCollectedPos is the grid position of the star just collected (needed for AreaReveal).
     /// </summary>
+    private void CheckConstellationComplete(int constellationIndex, Vector2Int lastCollectedPos)
+    {
+        var constellation = levelData.constellations[constellationIndex];
+
+        // Not done yet
+        if (nextStarIndex[constellationIndex] < constellation.StarCount) return;
+
+        Debug.Log($"[GameManager] ⭐ Constellation complete: {constellation.constellationName}");
+
+        AudioManager.Instance?.PlayConstellationComplete();
+
+        // ── Fire special ability ──────────────────────────────────────────────
+        if (constellation.abilityType == ConstellationAbilityType.AreaReveal)
+        {
+            GridManager.Instance?.RevealArea(lastCollectedPos, constellation.abilityRadius);
+            HintSystem.Instance?.RefreshAllHints();
+            Debug.Log($"[GameManager] AreaReveal triggered at {lastCollectedPos} radius {constellation.abilityRadius}");
+        }
+        // ReverseCompass is passive (handled by CompassController each frame) — no action needed here
+
+        // ── Play completion video (if assigned) ───────────────────────────────
+        ConstellationCompletePanel.Instance?.Play(constellation);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Constellation Switching (called by ConstellationSelector)
+    // ─────────────────────────────────────────────────────────────────────────
+
     public void SetActiveConstellation(int index)
     {
         if (State != GameState.Playing) return;
@@ -197,13 +220,15 @@ public class GameManager : MonoBehaviour
         for (int i = 0; i < levelData.constellations.Length; i++)
         {
             if (nextStarIndex[i] < levelData.constellations[i].StarCount)
-                return; // at least one constellation still has stars left
+                return;
         }
 
         State = GameState.Won;
         int finalScore = ScoreManager.Instance != null ? ScoreManager.Instance.Score : 0;
         bool perfect   = MistakeCount == 0;
         Debug.Log($"[GameManager] You Win! Score={finalScore} Perfect={perfect}");
+
+        AudioManager.Instance?.PlayWin();
         UIManager.Instance?.ShowWinPanel(finalScore, perfect);
     }
 
@@ -211,10 +236,6 @@ public class GameManager : MonoBehaviour
     // Helpers
     // ─────────────────────────────────────────────────────────────────────────
 
-    /// <summary>
-    /// After a star is Collected or Failed, skip forward past any
-    /// already-Failed stars so the target always points to a reachable cell.
-    /// </summary>
     private void AdvancePastFailedStars(int constellationIndex)
     {
         var constellation = levelData.constellations[constellationIndex];
@@ -234,11 +255,9 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// Returns the grid position of the current target star for the active constellation.
     /// Returns (-1,-1) if all stars in the active constellation are done.
-    /// Used by CompassController to aim the needle.
     /// </summary>
     public Vector2Int GetCurrentTargetPosition()
     {
-        // Guard: called before InitGame() runs (Script Execution Order race)
         if (nextStarIndex == null) return new Vector2Int(-1, -1);
 
         int idx = nextStarIndex[activeConstellationIndex];
@@ -248,10 +267,6 @@ public class GameManager : MonoBehaviour
         return ActiveConstellation.starPositions[idx];
     }
 
-    /// <summary>
-    /// Returns the index of a ConstellationData in the level's array.
-    /// Returns -1 if not found.
-    /// </summary>
     private int GetConstellationIndex(ConstellationData constellation)
     {
         for (int i = 0; i < levelData.constellations.Length; i++)

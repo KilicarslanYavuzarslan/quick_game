@@ -163,4 +163,33 @@ public class GridManager : MonoBehaviour
     /// Returns the LevelData asset this grid was built from.
     /// </summary>
     public LevelData LevelData => levelData;
+
+    /// <summary>
+    /// Reveals all Hidden cells within Manhattan distance radius of center.
+    /// Star cells become Peeked (star visible, still clickable in sequence).
+    /// Empty cells become Revealed (hint numbers assigned by HintSystem afterward).
+    /// Called by GameManager when AreaReveal ability fires.
+    /// </summary>
+    public void RevealArea(Vector2Int center, int radius)
+    {
+        for (int dx = -radius; dx <= radius; dx++)
+        {
+            for (int dy = -radius; dy <= radius; dy++)
+            {
+                if (Mathf.Abs(dx) + Mathf.Abs(dy) > radius) continue; // Manhattan filter
+
+                var pos = new Vector2Int(center.x + dx, center.y + dy);
+                if (!IsInBounds(pos)) continue;
+
+                var cell = GetCell(pos);
+                if (cell == null || cell.state != Cell.CellState.Hidden) continue;
+
+                // Stars become Peeked so the player can see where the star is
+                // Empty cells become Revealed so hint numbers appear
+                cell.SetState(cell.isStar ? Cell.CellState.Peeked : Cell.CellState.Revealed);
+            }
+        }
+
+        Debug.Log($"[GridManager] RevealArea center={center} radius={radius}");
+    }
 }

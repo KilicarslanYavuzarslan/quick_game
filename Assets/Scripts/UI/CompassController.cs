@@ -12,8 +12,11 @@ using System.Collections;
 ///   └── Needle     (Image — rotates around the dial center)
 ///   └── Label      (TextMeshPro — shows active constellation name)
 ///
-/// The needle sprite should point UP at 0° rotation.
-/// Rotation is driven every frame in Update via MoveTowardsAngle.
+/// The needle sprite should point UP at 0° rotation (North = up = toward target).
+///
+/// ReverseCompass ability: when the active constellation has this ability,
+/// the needle points 180° away from the target (South points to correct star).
+/// The needle turns reversedColor to warn the player that something is different.
 /// </summary>
 public class CompassController : MonoBehaviour
 {
@@ -36,7 +39,7 @@ public class CompassController : MonoBehaviour
     [Tooltip("The needle child — this is what physically rotates.")]
     [SerializeField] private RectTransform needle;
 
-    [Tooltip("Image on the needle — color changes to red on error.")]
+    [Tooltip("Image on the needle — color changes based on state.")]
     [SerializeField] private Image needleImage;
 
     [Tooltip("TextMeshPro showing the active constellation name below the compass.")]
@@ -48,24 +51,31 @@ public class CompassController : MonoBehaviour
     [Tooltip("Degrees per second the needle rotates toward its target.")]
     [SerializeField] private float rotationSpeed = 300f;
 
-    [Header("Error Feedback")]
-    [SerializeField] private Color normalColor = new Color(0.937f, 0.624f, 0.153f); // #EF9F27 gold
-    [SerializeField] private Color errorColor  = new Color(0.886f, 0.294f, 0.290f); // #E24B4A red
+    [Header("Needle Colors")]
+    [Tooltip("Normal state — needle pointing at target.")]
+    [SerializeField] private Color normalColor   = new Color(0.937f, 0.624f, 0.153f); // #EF9F27 gold
+
+    [Tooltip("ReverseCompass ability active — needle points AWAY from target. Warns player.")]
+    [SerializeField] private Color reversedColor = new Color(0.502f, 0.251f, 0.796f); // purple
+
+    [Tooltip("Wrong click flash color.")]
+    [SerializeField] private Color errorColor    = new Color(0.886f, 0.294f, 0.290f); // #E24B4A red
+
     [SerializeField] private float errorDuration = 0.45f;
 
     // ── Runtime State ─────────────────────────────────────────────────────────
 
-    private Vector2   targetScreenPos;
-    private bool      hasTarget       = false;
-    private Coroutine errorCoroutine;
+    private Vector2    targetScreenPos;
+    private bool       hasTarget      = false;
+    private Coroutine  errorCoroutine;
 
     // ── Unity Lifecycle ───────────────────────────────────────────────────────
 
     private void Start()
     {
-        // Initialise color only — first target is pushed by GameManager.InitGame()
-        // to avoid a Start() execution-order race where nextStarIndex is still null
-        if (needleImage != null) needleImage.color = normalColor;
+        // Color only — first target pushed by GameManager.InitGame() to avoid
+        // Start() execution-order race where nextStarIndex is still null
+        UpdateNeedleColor();
     }
 
     private void Update()
@@ -88,7 +98,6 @@ public class CompassController : MonoBehaviour
 
         Vector2Int gridPos = GameManager.Instance.GetCurrentTargetPosition();
 
-        // (-1,-1) means no more stars in this constellation
         if (gridPos.x < 0)
         {
             hasTarget = false;
@@ -103,19 +112,22 @@ public class CompassController : MonoBehaviour
             return;
         }
 
-        // For Screen Space – Overlay canvas, camera param is null
         targetScreenPos = RectTransformUtility.WorldToScreenPoint(null, targetCell.transform.position);
         hasTarget = true;
 
-        // Update constellation label
         if (constellationLabel != null && GameManager.Instance.ActiveConstellation != null)
             constellationLabel.text = GameManager.Instance.ActiveConstellation.constellationName;
+
+        // Update needle color in case constellation (and its ability) changed
+        UpdateNeedleColor();
+
+        AudioManager.Instance?.PlayCompassReaim();
 
         Debug.Log($"[CompassController] Target updated → {gridPos} | screen: {targetScreenPos}");
     }
 
     /// <summary>
-    /// Flashes the needle red then returns to gold.
+    /// Flashes the needle red then returns to the correct state color.
     /// Called by GameManager on wrong click.
     /// </summary>
     public void PlayErrorFeedback()
@@ -130,22 +142,46 @@ public class CompassController : MonoBehaviour
 
     private void RotateNeedleToward(Vector2 target)
     {
-        // Use the compass widget center as the pivot reference point
         Vector2 fromPos = compassWidget != null
             ? RectTransformUtility.WorldToScreenPoint(null, compassWidget.position)
             : RectTransformUtility.WorldToScreenPoint(null, needle.position);
 
         Vector2 direction = target - fromPos;
-        if (direction.sqrMagnitude < 1f) return; // already on target
+        if (direction.sqrMagnitude < 1f) return;
 
-        // atan2(x, y) gives angle where 0° = up, positive = clockwise
+        // atan2(x, y) → 0° = up, clockwise positive
         float targetAngle = Mathf.Atan2(direction.x, direction.y) * Mathf.Rad2Deg;
 
-        // Unity UI rotation: positive Z = counter-clockwise, so we negate
+        // ReverseCompass ability: flip 180° so the SOUTH tip of the needle points at target
+        if (IsReverseCompassActive())
+            targetAngle += 180f;
+
+        // Unity UI: positive Z = counter-clockwise, so negate
         float currentAngle = needle.eulerAngles.z;
         float newAngle = Mathf.MoveTowardsAngle(currentAngle, -targetAngle, rotationSpeed * Time.deltaTime);
 
         needle.eulerAngles = new Vector3(0f, 0f, newAngle);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Needle Color
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Sets needle to the correct color for the current constellation ability state.
+    /// Gold = normal. Purple = ReverseCompass active.
+    /// Called on target update and after error flash ends.
+    /// </summary>
+    private void UpdateNeedleColor()
+    {
+        if (needleImage == null) return;
+        needleImage.color = IsReverseCompassActive() ? reversedColor : normalColor;
+    }
+
+    private bool IsReverseCompassActive()
+    {
+        return GameManager.Instance?.ActiveConstellation?.abilityType
+               == ConstellationAbilityType.ReverseCompass;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -156,7 +192,7 @@ public class CompassController : MonoBehaviour
     {
         if (needleImage != null) needleImage.color = errorColor;
         yield return new WaitForSeconds(errorDuration);
-        if (needleImage != null) needleImage.color = normalColor;
+        UpdateNeedleColor(); // returns to gold or purple depending on active constellation
         errorCoroutine = null;
     }
 }

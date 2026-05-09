@@ -9,17 +9,19 @@ using TMPro;
 /// State machine:
 ///   Hidden    — default, dark tile, no information shown
 ///   Revealed  — empty cell was clicked, shows distance hint number
-///   Collected — correct star clicked, dimmed star visual
+///   Peeked    — star cell exposed by AreaReveal ability: star visible but not yet collected
+///   Collected — correct star clicked in sequence, dimmed star visual
 ///   Failed    — wrong star clicked, red star visual, permanently marked
 ///
 /// Identity (isStar, constellation, starIndex) is set by GridManager at build time.
 /// Click logic is handled here but deferred to GameManager for resolution.
+/// Hover sound plays only on Hidden cells (AudioManager).
 /// </summary>
-public class Cell : MonoBehaviour, IPointerClickHandler
+public class Cell : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler
 {
     // ── State ────────────────────────────────────────────────────────────────
 
-    public enum CellState { Hidden, Revealed, Collected, Failed }
+    public enum CellState { Hidden, Revealed, Peeked, Collected, Failed }
 
     [HideInInspector] public CellState state = CellState.Hidden;
 
@@ -45,15 +47,16 @@ public class Cell : MonoBehaviour, IPointerClickHandler
     [SerializeField] private Sprite revealedSprite;
     [SerializeField] private Sprite collectedSprite;
     [SerializeField] private Sprite failedSprite;
+    // Peeked reuses revealedSprite — no separate sprite needed unless art team wants one
 
     // ── Hint Text Colors ──────────────────────────────────────────────────────
 
     [Header("Hint Colors")]
-    [SerializeField] private Color hintColor1 = new Color(0.937f, 0.624f, 0.153f); // Gold  — distance 1
+    [SerializeField] private Color hintColor1 = new Color(0.937f, 0.624f, 0.153f); // Gold   — distance 1
     [SerializeField] private Color hintColor2 = new Color(0.937f, 0.537f, 0.184f); // Orange — distance 2
-    [SerializeField] private Color hintColor3 = new Color(0.565f, 0.565f, 0.565f); // Gray  — distance 3
+    [SerializeField] private Color hintColor3 = new Color(0.565f, 0.565f, 0.565f); // Gray   — distance 3
 
-    // ── Background Colors (used when no sprite is assigned) ───────────────────
+    // ── Background Colors (fallback when no sprite) ───────────────────────────
 
     [Header("Background Colors (fallback when no sprite)")]
     [SerializeField] private Color hiddenColor    = new Color(0.102f, 0.102f, 0.180f); // #1A1A2E
@@ -61,11 +64,16 @@ public class Cell : MonoBehaviour, IPointerClickHandler
     [SerializeField] private Color collectedColor = new Color(0.102f, 0.102f, 0.180f);
     [SerializeField] private Color failedColor    = new Color(0.886f, 0.294f, 0.290f); // #E24B4A
 
+    // ── Peeked (AreaReveal ability) ───────────────────────────────────────────
+
+    [Header("Peeked (AreaReveal ability)")]
+    [Tooltip("Star tint color when exposed by AreaReveal. Keep the star sprite white so tinting works.")]
+    [SerializeField] private Color peekedStarColor = new Color(1f, 0.92f, 0.4f, 0.75f); // semi-transparent gold
+
     // ── Unity Lifecycle ───────────────────────────────────────────────────────
 
     private void Start()
     {
-        // Initialise visual state on spawn
         UpdateVisuals();
     }
 
@@ -89,6 +97,7 @@ public class Cell : MonoBehaviour, IPointerClickHandler
     public void SetHintDisplay(int distance)
     {
         if (state != CellState.Revealed) return;
+        if (hintText == null) return;
 
         switch (distance)
         {
@@ -127,7 +136,9 @@ public class Cell : MonoBehaviour, IPointerClickHandler
     {
         Debug.Log($"[Cell] Click at {gridPosition} | state={state} | isStar={isStar}");
 
-        if (state != CellState.Hidden) return;
+        // Hidden = normal undiscovered cell
+        // Peeked = star exposed by AreaReveal ability — still needs to be clicked in order
+        if (state != CellState.Hidden && state != CellState.Peeked) return;
 
         if (GameManager.Instance == null)
         {
@@ -135,7 +146,19 @@ public class Cell : MonoBehaviour, IPointerClickHandler
             return;
         }
 
+        AudioManager.Instance?.PlayClick();
         GameManager.Instance.OnCellClicked(this);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Hover Sound
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        // Only Hidden cells produce hover sound — Peeked/Revealed/etc. are already "known"
+        if (state == CellState.Hidden)
+            AudioManager.Instance?.PlayHover();
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -156,6 +179,14 @@ public class Cell : MonoBehaviour, IPointerClickHandler
                 SetBackground(revealedSprite, revealedColor);
                 SetStarVisible(false);
                 // Hint number is set separately by HintSystem
+                break;
+
+            case CellState.Peeked:
+                // Exposed by AreaReveal — background like Revealed, star visible
+                // so the player knows there's a star here and can click it in sequence
+                SetBackground(revealedSprite, revealedColor);
+                SetStarVisible(true, peekedStarColor);
+                if (hintText != null) hintText.text = "";
                 break;
 
             case CellState.Collected:

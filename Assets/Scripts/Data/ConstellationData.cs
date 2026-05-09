@@ -1,8 +1,22 @@
 using UnityEngine;
+using UnityEngine.Video;
+
+// ── Ability Types ─────────────────────────────────────────────────────────────
+// Each constellation can have one special ability that activates during or
+// at the end of its collection sequence.
+//
+// None         — standard constellation, no special effect.
+// ReverseCompass — while this constellation is active, the compass needle
+//                  points AWAY from the target (South points to correct star).
+//                  The needle color changes to warn the player.
+// AreaReveal   — when the LAST star of this constellation is collected,
+//                  all Hidden cells within abilityRadius (Manhattan distance)
+//                  are revealed. Star cells become Peeked (visible but uncollected).
+public enum ConstellationAbilityType { None, ReverseCompass, AreaReveal }
 
 /// <summary>
-/// Defines a single constellation: its name, color, and the ordered positions
-/// of its stars on the grid.
+/// Defines a single constellation: its name, color, ordered star positions,
+/// special ability, and optional completion video.
 ///
 /// Star collection order = array index order.
 /// Index 0 must be collected first, index 1 second, and so on.
@@ -25,20 +39,22 @@ public class ConstellationData : ScriptableObject
              "Coordinates: X = column (0 = left), Y = row (0 = top). Max 7 on an 8x8 grid.")]
     public Vector2Int[] starPositions;
 
-    // ── Post-Jam Hook ─────────────────────────────────────────────────────────
-    // Constellation abilities — reserved for post-jam implementation.
-    // Each constellation could grant a buff or reward on full completion.
-    // See _dev/Notes/ideas.md for design directions.
-    //
-    // [Header("Ability (Post-Jam)")]
-    // public ConstellationAbilityType abilityType;
-    // public string abilityDescription;
+    [Header("Special Ability")]
+    [Tooltip("The special effect this constellation provides.\n" +
+             "ReverseCompass: needle points away from the target while this constellation is active.\n" +
+             "AreaReveal: reveals cells around the last collected star on completion.")]
+    public ConstellationAbilityType abilityType = ConstellationAbilityType.None;
+
+    [Tooltip("Radius (Manhattan distance) for AreaReveal. 1 = 4 adjacent cells. Only used if abilityType = AreaReveal.")]
+    public int abilityRadius = 1;
+
+    [Header("Completion Video")]
+    [Tooltip("Optional MP4 (VideoClip) that plays when all stars in this constellation are collected.")]
+    public VideoClip completionVideo;
 
     // ── Computed Properties ───────────────────────────────────────────────────
 
-    /// <summary>
-    /// Total number of stars in this constellation.
-    /// </summary>
+    /// <summary>Total number of stars in this constellation.</summary>
     public int StarCount => starPositions != null ? starPositions.Length : 0;
 
     /// <summary>
@@ -58,7 +74,6 @@ public class ConstellationData : ScriptableObject
 #if UNITY_EDITOR
     private void OnValidate()
     {
-        // Warn if any two stars share the same grid position — that would break the game.
         if (starPositions == null) return;
         for (int i = 0; i < starPositions.Length; i++)
         {
