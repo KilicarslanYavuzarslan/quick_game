@@ -3,9 +3,16 @@ using UnityEngine.SceneManagement;
 using TMPro;
 
 /// <summary>
-/// Manages all UI in the MainGame scene.
-/// Handles Win/Lose panels now (Step 5).
-/// HUD (score, progress bars, constellation buttons) added in Step 9.
+/// Manages all in-game UI: live HUD (score, mistakes, constellation progress)
+/// and Win/Lose end-game panels.
+///
+/// Subscribes to ScoreManager events in Start so the HUD updates automatically
+/// whenever the score or mistake count changes — no polling needed.
+///
+/// Manual wiring required in Inspector:
+///   HUD:      scoreText, mistakesText, and one progressText per constellation
+///   WinPanel: winPanel, winScoreText
+///   LosePanel: losePanel, loseMistakesText
 /// </summary>
 public class UIManager : MonoBehaviour
 {
@@ -18,6 +25,21 @@ public class UIManager : MonoBehaviour
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
     }
+
+    // ── HUD ───────────────────────────────────────────────────────────────────
+
+    [Header("HUD")]
+    [Tooltip("Live score display. Updated via ScoreManager.OnScoreChanged event.")]
+    [SerializeField] private TextMeshProUGUI scoreText;
+
+    [Tooltip("Live mistake counter. Format: 'Mistakes: 1 / 3'")]
+    [SerializeField] private TextMeshProUGUI mistakesText;
+
+    [Tooltip("One TMP text per constellation showing collected/total stars. " +
+             "Array order must match LevelData.constellations order.")]
+    [SerializeField] private TextMeshProUGUI[] constellationProgressTexts;
+
+    private const int MISTAKE_LIMIT = 3; // mirrors GameManager — shown in HUD label
 
     // ── Win Panel ─────────────────────────────────────────────────────────────
 
@@ -35,18 +57,67 @@ public class UIManager : MonoBehaviour
 
     private void Start()
     {
-        // Both panels start hidden
+        // Hide end-game panels
         if (winPanel  != null) winPanel.SetActive(false);
         if (losePanel != null) losePanel.SetActive(false);
+
+        // Subscribe to ScoreManager events for live HUD updates
+        if (ScoreManager.Instance != null)
+        {
+            ScoreManager.Instance.OnScoreChanged    += UpdateScoreText;
+            ScoreManager.Instance.OnMistakesChanged += UpdateMistakesText;
+        }
+
+        // Initialise HUD to zero
+        UpdateScoreText(0);
+        UpdateMistakesText(0);
+    }
+
+    private void OnDestroy()
+    {
+        // Always unsubscribe to prevent memory leaks on scene reload
+        if (ScoreManager.Instance != null)
+        {
+            ScoreManager.Instance.OnScoreChanged    -= UpdateScoreText;
+            ScoreManager.Instance.OnMistakesChanged -= UpdateMistakesText;
+        }
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Panel Control
+    // HUD Updates (driven by ScoreManager events)
     // ─────────────────────────────────────────────────────────────────────────
 
+    private void UpdateScoreText(int newScore)
+    {
+        if (scoreText != null)
+            scoreText.text = $"Score: {newScore}";
+    }
+
+    private void UpdateMistakesText(int newMistakes)
+    {
+        if (mistakesText != null)
+            mistakesText.text = $"Mistakes: {newMistakes} / {MISTAKE_LIMIT}";
+    }
+
     /// <summary>
-    /// Called by GameManager when all stars are collected/processed.
+    /// Updates the progress label for one constellation.
+    /// Call from GameManager after each correct collection.
+    /// e.g. "Orion: 3 / 5"
     /// </summary>
+    public void UpdateProgress(int constellationIndex, int collectedCount, int totalCount, string name)
+    {
+        if (constellationProgressTexts == null) return;
+        if (constellationIndex < 0 || constellationIndex >= constellationProgressTexts.Length) return;
+
+        var text = constellationProgressTexts[constellationIndex];
+        if (text != null)
+            text.text = $"{name}: {collectedCount} / {totalCount}";
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // End-Game Panels
+    // ─────────────────────────────────────────────────────────────────────────
+
     public void ShowWinPanel(int finalScore, bool isPerfect)
     {
         if (winPanel == null) { Debug.LogWarning("[UIManager] WinPanel not assigned."); return; }
@@ -60,9 +131,6 @@ public class UIManager : MonoBehaviour
         winPanel.SetActive(true);
     }
 
-    /// <summary>
-    /// Called by GameManager when mistake limit is exceeded.
-    /// </summary>
     public void ShowLosePanel(int mistakeCount)
     {
         if (losePanel == null) { Debug.LogWarning("[UIManager] LosePanel not assigned."); return; }
@@ -77,15 +145,6 @@ public class UIManager : MonoBehaviour
     // Button Callbacks (wire in Inspector)
     // ─────────────────────────────────────────────────────────────────────────
 
-    /// <summary>Reloads the MainGame scene. Wire to Play Again buttons.</summary>
-    public void OnPlayAgainClicked()
-    {
-        SceneManager.LoadScene(MainMenuManager.SCENE_MAIN_GAME);
-    }
-
-    /// <summary>Loads the MainMenu scene. Wire to Main Menu buttons.</summary>
-    public void OnMainMenuClicked()
-    {
-        SceneManager.LoadScene(MainMenuManager.SCENE_MAIN_MENU);
-    }
+    public void OnPlayAgainClicked()  => SceneManager.LoadScene(MainMenuManager.SCENE_MAIN_GAME);
+    public void OnMainMenuClicked()   => SceneManager.LoadScene(MainMenuManager.SCENE_MAIN_MENU);
 }

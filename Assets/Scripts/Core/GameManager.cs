@@ -123,7 +123,14 @@ public class GameManager : MonoBehaviour
         HintSystem.Instance?.RefreshAllHints();
         CompassController.Instance?.UpdateTarget();
 
-        // ScoreManager.Instance?.AddScore(100);   // Step 9
+        ScoreManager.Instance?.AddScore(100);
+
+        var c = levelData.constellations[constellationIndex];
+        UIManager.Instance?.UpdateProgress(
+            constellationIndex,
+            nextStarIndex[constellationIndex],
+            c.StarCount,
+            c.constellationName);
 
         CheckConstellationComplete(constellationIndex, cell.gridPosition);
         CheckWinCondition();
@@ -151,7 +158,7 @@ public class GameManager : MonoBehaviour
         AudioManager.Instance?.PlayWrong();
         CompassController.Instance?.PlayErrorFeedback();
 
-        // ScoreManager.Instance?.RegisterMistake();   // Step 9
+        ScoreManager.Instance?.RegisterMistake();
 
         if (MistakeCount > MISTAKE_LIMIT)
         {
