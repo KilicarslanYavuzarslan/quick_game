@@ -17,7 +17,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &8420945842880490327
 RectTransform:
   m_ObjectHideFlags: 0
@@ -65,7 +65,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 287763501635482514, guid: 67d407f01c6c5974887b9b5144b4e90c, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -353,7 +353,7 @@ MonoBehaviour:
   starIndex: 0
   gridPosition: {x: 0, y: 0}
   backgroundImage: {fileID: 1182979172153142177}
-  starImage: {fileID: 0}
+  starImage: {fileID: 4409125924530008904}
   hintText: {fileID: 7119981169964070724}
   hiddenSprite: {fileID: 0}
   revealedSprite: {fileID: 0}
@@ -366,3 +366,4 @@ MonoBehaviour:
   revealedColor: {r: 0.141, g: 0.141, b: 0.235, a: 1}
   collectedColor: {r: 0.102, g: 0.102, b: 0.18, a: 1}
   failedColor: {r: 0.886, g: 0.294, b: 0.29, a: 1}
+  peekedStarColor: {r: 1, g: 0.92, b: 0.4, a: 0.75}
