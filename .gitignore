@@ -73,3 +73,11 @@ crashlytics-build.properties
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
+
+# Private workflow folder (GDD, notes, tasks, references — not for git)
+/_dev/
+
+# Claude / AI agent working files
+.claude/
+CLAUDE.md
+memory/

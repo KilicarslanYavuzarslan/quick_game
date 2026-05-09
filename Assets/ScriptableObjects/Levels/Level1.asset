@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4f18698b105d6eb479b2cb484604fecd, type: 3}
+  m_Name: Level1
+  m_EditorClassIdentifier: Assembly-CSharp::LevelData
+  gridSize: {x: 8, y: 8}
+  constellations:
+  - {fileID: 11400000, guid: 67b001aee773ae84fae51b0fdb6531dc, type: 2}
+  - {fileID: 11400000, guid: cf698e262c79814459ef00bf683c7135, type: 2}
