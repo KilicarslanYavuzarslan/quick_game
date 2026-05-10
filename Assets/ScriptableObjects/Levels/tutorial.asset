@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f18698b105d6eb479b2cb484604fecd, type: 3}
   m_Name: tutorial
   m_EditorClassIdentifier: Assembly-CSharp::LevelData
-  gridSize: {x: 8, y: 8}
+  gridSize: {x: 5, y: 5}
   constellations:
-  - {fileID: 11400000, guid: 67b001aee773ae84fae51b0fdb6531dc, type: 2}
+  - {fileID: 11400000, guid: 44a50bacde8745c8a7e17813ff1a3e65, type: 2}

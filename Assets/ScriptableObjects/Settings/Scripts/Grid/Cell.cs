@@ -216,7 +216,9 @@ public class Cell : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler
 
             case CellState.Collected:
                 SetBackground(collectedSprite, collectedColor);
-                SetStarVisible(true, constellation != null ? constellation.color * 0.5f : Color.gray);
+                // Use the full constellation color assigned in the ScriptableObject so
+                // each collected star is clearly distinguishable by its constellation.
+                SetStarVisible(true, constellation != null ? constellation.color : Color.white);
                 if (hintText != null) hintText.text = "";
                 break;
 

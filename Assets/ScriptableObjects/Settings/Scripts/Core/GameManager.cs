@@ -111,8 +111,9 @@ public class GameManager : MonoBehaviour
         // ── Empty cell (or revealed-but-not-star) ─────────────────────────────
         if (!cell.isStar)
         {
+            // Just flip the cell visually — distance numbers are NOT shown automatically.
+            // The player must purchase a hint (HintSystem.TryUseHint) to see numbers.
             cell.SetState(Cell.CellState.Revealed);
-            HintSystem.Instance?.RefreshCell(cell);
             return;
         }
 
@@ -145,7 +146,9 @@ public class GameManager : MonoBehaviour
                   $"star {cell.starIndex + 1} collected.");
 
         AudioManager.Instance?.PlayCorrect();
-        HintSystem.Instance?.RefreshAllHints();
+        // Target has advanced — clear any visible hint numbers so stale distances
+        // don't mislead the player. They must buy a new hint to see fresh numbers.
+        HintSystem.Instance?.ClearAllHints();
         CompassController.Instance?.UpdateTarget();
 
         ScoreManager.Instance?.AddScore(100);
@@ -221,7 +224,7 @@ public class GameManager : MonoBehaviour
         {
             Debug.Log($"[GameManager] AreaReveal triggered at {lastCollectedPos} radius {constellation.abilityRadius}");
             GridManager.Instance?.RevealArea(lastCollectedPos, constellation.abilityRadius);
-            HintSystem.Instance?.RefreshAllHints();
+            // Newly revealed cells show no numbers — player must buy a hint to see distances.
         }
         else if (constellation.abilityType == ConstellationAbilityType.ReverseCompass)
         {
@@ -279,7 +282,9 @@ public class GameManager : MonoBehaviour
         Debug.Log($"[GameManager] Active constellation → {ActiveConstellation.constellationName}");
 
         CompassController.Instance?.UpdateTarget();
-        HintSystem.Instance?.RefreshAllHints();
+        // Switching constellation changes the target, so all displayed distances
+        // are now wrong — clear them. Player buys a new hint if they need numbers.
+        HintSystem.Instance?.ClearAllHints();
     }
 
     // ─────────────────────────────────────────────────────────────────────────

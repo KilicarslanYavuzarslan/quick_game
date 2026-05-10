@@ -2,18 +2,21 @@ using UnityEngine;
 using System;
 
 /// <summary>
-/// Calculates and displays Manhattan distance hints on all currently-Revealed cells.
+/// Manages purchasable distance hints on the game grid.
 ///
-/// Distance is always relative to the active constellation's next target star.
-/// Called by GameManager after:
-///   - A correct star is collected (target advances)
-///   - The active constellation switches
+/// By default, revealed cells show NO distance numbers — numbers are hidden until
+/// the player spends 75 points via TryUseHint(). On purchase, numbers appear on
+/// every currently-Revealed cell based on Manhattan distance to the active target.
 ///
-/// Display rules:
+/// Numbers are automatically cleared (ClearAllHints) whenever the target changes
+/// (correct star collected, constellation switched) so stale distances never persist.
+/// The player must purchase a new hint to see fresh numbers after each target shift.
+///
+/// Display rules (when a hint is active):
 ///   Distance 1 → gold  "1"
 ///   Distance 2 → orange "2"
 ///   Distance 3 → gray  "3"
-///   Distance 4+ → blank (no number shown)
+///   Distance 4+ → blank
 /// </summary>
 public class HintSystem : MonoBehaviour
 {
@@ -124,23 +127,14 @@ public class HintSystem : MonoBehaviour
     }
 
     /// <summary>
-    /// Updates the hint on a single newly-revealed cell without iterating the whole grid.
-    /// Call this when one cell transitions to Revealed (empty click).
+    /// Clears all distance numbers from every cell on the grid.
+    /// Called by GameManager whenever the target shifts (correct star collected,
+    /// constellation switched) so stale distances never remain visible.
     /// </summary>
-    public void RefreshCell(Cell cell)
+    public void ClearAllHints()
     {
-        if (GameManager.Instance == null) return;
-
-        Vector2Int targetPos = GameManager.Instance.GetCurrentTargetPosition();
-
-        if (targetPos.x < 0)
-        {
-            cell.ClearHint();
-            return;
-        }
-
-        int dist = ManhattanDistance(cell.gridPosition, targetPos);
-        cell.SetHintDisplay(dist);
+        GridManager.Instance?.ForEachCell(cell => cell.ClearHint());
+        Debug.Log("[HintSystem] All hints cleared.");
     }
 
     // ─────────────────────────────────────────────────────────────────────────
