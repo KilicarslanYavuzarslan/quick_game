@@ -2663,9 +2663,11 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1358762867}
+  - component: {fileID: 1358762872}
   - component: {fileID: 1358762870}
   - component: {fileID: 1358762869}
   - component: {fileID: 1358762868}
+  - component: {fileID: 1358762871}
   m_Layer: 5
   m_Name: Button
   m_TagString: Untagged
@@ -2787,6 +2789,33 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1358762866}
   m_CullTransparentMesh: 1
+--- !u!225 &1358762871
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1358762866}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
+--- !u!114 &1358762872
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1358762866}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9066195db01abc94b84e62ab231dd1f9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DOTweenButton
+  scaleMultiplier: 0.9
+  fadeAlpha: 0.6
+  duration: 0.15
 --- !u!1 &1400589401
 GameObject:
   m_ObjectHideFlags: 0
