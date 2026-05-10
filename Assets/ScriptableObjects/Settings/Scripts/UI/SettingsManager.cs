@@ -9,6 +9,8 @@ public class SettingsManager : MonoBehaviour
     [SerializeField] private Slider musicSlider;
     [SerializeField] private Slider sfxSlider;
 
+    private const float MinSliderValue = 0.0001f;
+
     private void Start()
     {
         // 1. Oyuncu daha önce ses ayarı yaptıysa onu yükle, yapmadıysa varsayılan (1) yap
@@ -26,6 +28,11 @@ public class SettingsManager : MonoBehaviour
         if (sfxSlider != null)
             sfxSlider.onValueChanged.AddListener(SetSFXVolume);
 
+        if (mainMixer == null)
+        {
+            Debug.LogWarning("[SettingsManager] mainMixer is not assigned. Volume changes will be ignored until it is set in the Inspector.");
+        }
+
         // İlk açılışta sesi uygula
         SetMusicVolume(savedMusicVol);
         SetSFXVolume(savedSFXVol);
@@ -33,8 +40,11 @@ public class SettingsManager : MonoBehaviour
 
     public void SetMusicVolume(float sliderValue)
     {
+        if (mainMixer == null) return;
+
         // Slider değerini (0.0001 - 1) Mixer'in anlayacağı desibel (dB) değerine çevir
-        mainMixer.SetFloat("MusicVolume", Mathf.Log10(sliderValue) * 20);
+        float clampedValue = Mathf.Max(sliderValue, MinSliderValue);
+        mainMixer.SetFloat("MusicVolume", Mathf.Log10(clampedValue) * 20);
         
         // Değeri telefona/bilgisayara kaydet
         PlayerPrefs.SetFloat("SavedMusicVol", sliderValue);
@@ -42,7 +52,10 @@ public class SettingsManager : MonoBehaviour
 
     public void SetSFXVolume(float sliderValue)
     {
-        mainMixer.SetFloat("SFXVolume", Mathf.Log10(sliderValue) * 20);
+        if (mainMixer == null) return;
+
+        float clampedValue = Mathf.Max(sliderValue, MinSliderValue);
+        mainMixer.SetFloat("SFXVolume", Mathf.Log10(clampedValue) * 20);
         PlayerPrefs.SetFloat("SavedSFXVol", sliderValue);
     }
 }

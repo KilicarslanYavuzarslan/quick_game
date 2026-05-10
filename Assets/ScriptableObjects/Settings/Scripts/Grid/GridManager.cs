@@ -38,10 +38,7 @@ public class GridManager : MonoBehaviour
             return;
         }
         Instance = this;
-    }
 
-    private void Start()
-    {
         BuildGrid();
     }
 
@@ -128,6 +125,7 @@ public class GridManager : MonoBehaviour
     /// </summary>
     public Cell GetCell(Vector2Int position)
     {
+        if (grid == null) return null;
         if (!IsInBounds(position)) return null;
         return grid[position.x, position.y];
     }

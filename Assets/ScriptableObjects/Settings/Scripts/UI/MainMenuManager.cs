@@ -14,13 +14,14 @@ public class MainMenuManager : MonoBehaviour
     // If you rename a scene, change it in one place only.
     public const string SCENE_MAIN_MENU = "MainMenu";
     public const string SCENE_MAIN_GAME = "MainGame";
+    public const string SCENE_TUTORIAL = "Tutorial";
 
     /// <summary>
     /// Called by the Play button's OnClick event in the Inspector.
     /// </summary>
     public void PlayGame()
     {
-        SceneManager.LoadScene(SCENE_MAIN_GAME);
+        SceneManager.LoadScene(SCENE_TUTORIAL);
     }
 
     /// <summary>

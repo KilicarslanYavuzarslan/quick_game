@@ -632,7 +632,7 @@ MonoBehaviour:
   compassReaimClip: {fileID: 8300000, guid: a11cc110ba40e3149bec0d20061a6b27, type: 3}
   constellationCompleteClip: {fileID: 8300000, guid: 3a8afed88b4c10447aa6ec861e0b3ba3, type: 3}
   winClip: {fileID: 0}
-  bgMusic: {fileID: 0}
+  bgMusic: {fileID: 8300000, guid: aa5df68bd295c504ab8b62187e136b0a, type: 3}
   musicVolume: 0.4
   sfxVolume: 1
 --- !u!1 &683253427
@@ -1223,7 +1223,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3dd01a17fcecd1043a6ad9c2cd882885, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SettingsManager
-  mainMixer: {fileID: 0}
+  mainMixer: {fileID: 24100000, guid: f22717ccd396cd64c81fad31472049bd, type: 2}
   musicSlider: {fileID: 0}
   sfxSlider: {fileID: 0}
 --- !u!1 &1454368901
