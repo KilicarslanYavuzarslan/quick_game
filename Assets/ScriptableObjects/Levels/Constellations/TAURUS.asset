@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8250e44e9e5e90b40a4366c8da9dccaa, type: 3}
+  m_Name: TAURUS
+  m_EditorClassIdentifier: Assembly-CSharp::ConstellationData
+  constellationName: TAURUS
+  color: {r: 0.4862745, g: 0.43529412, b: 0.87058824, a: 1}
+  starPositions:
+  - {x: 2, y: 1}
+  - {x: 4, y: 1}
+  - {x: 5, y: 2}
+  - {x: 3, y: 3}
+  - {x: 1, y: 3}
+  - {x: 2, y: 5}
+  - {x: 4, y: 6}
+  - {x: 6, y: 5}
+  - {x: 5, y: 7}
+  abilityType: 2
+  abilityRadius: 1
+  completionVideo: {fileID: 32900000, guid: 505f533a53f321247a0f924d8b95abdd, type: 3}
