@@ -144,7 +144,8 @@ public class GameManager : MonoBehaviour
                   $"star {cell.starIndex + 1} collected.");
 
         AudioManager.Instance?.PlayCorrect();
-        HintSystem.Instance?.RefreshAllHints();
+        // Target advanced — old hints are stale. Clear so player must re-purchase.
+        HintSystem.Instance?.ClearAllHints();
         CompassController.Instance?.UpdateTarget();
 
         ScoreManager.Instance?.AddScore(100);
@@ -278,7 +279,8 @@ public class GameManager : MonoBehaviour
         Debug.Log($"[GameManager] Active constellation → {ActiveConstellation.constellationName}");
 
         CompassController.Instance?.UpdateTarget();
-        HintSystem.Instance?.RefreshAllHints();
+        // Constellation switched — target is now different, clear stale hints.
+        HintSystem.Instance?.ClearAllHints();
     }
 
     // ─────────────────────────────────────────────────────────────────────────
