@@ -20,24 +20,39 @@ public class TutorialManager : MonoBehaviour
     private bool isPlaying = false;
     private bool isTransitioning = false;
 
+
     private void Start()
     {
         
+<<<<<<< Updated upstream
        
         
+=======
+>>>>>>> Stashed changes
         // Paneli aktif et ve kuralları yazdır
         tutorialPanel.SetActive(true);
         isPlaying = false;
 
+<<<<<<< Updated upstream
        
         
+=======
+
+
+>>>>>>> Stashed changes
         if (tutorialText != null)
         {          
             tutorialText.text = "<b>WELCOME, EXPLORER!</b>\n\n" +
                                 "Your mission is to map the lost constellations.\n\n" +
                                 "1. The <b>Compass</b> always points toward your NEXT correct star.\n" +
+<<<<<<< Updated upstream
                                 "2. Click grid spaces to reveal <b>Distance Numbers</b> (1 = right next to you).\n" +
                                 "3. Use both the compass and numbers to find the stars.\n\n" +
+=======
+                                "2. Click empty spaces to uncover the grid — use the compass to navigate.\n" +
+                                "3. Collect stars <b>in order</b>. Wrong clicks count as mistakes!\n" +
+                                "4. Spend score to buy a <b>Hint</b> — it reveals distance numbers on uncovered tiles.\n\n" +
+>>>>>>> Stashed changes
                                 "Find the <i>Cancer</i> constellation to complete your training!";
         }
 
@@ -52,6 +67,7 @@ public class TutorialManager : MonoBehaviour
             startButton.onClick.AddListener(StartTutorialLevel);
         }
     }
+
 
     private void StartTutorialLevel()
     {

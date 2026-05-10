@@ -32,10 +32,17 @@ public class HintSystem : MonoBehaviour
     public int RemainingHintCharges { get; private set; }
 
     /// <summary>
+<<<<<<< Updated upstream:Assets/Scripts/Core/HintSystem.cs
     /// True only while hints are actively displayed (after a successful TryUseHint call).
     /// Cleared whenever the target changes so stale distance numbers never linger.
     /// </summary>
     public bool HintsActive { get; private set; }
+=======
+    /// True only after the player has purchased a hint for the current target.
+    /// Resets to false when the target star changes or the constellation switches.
+    /// </summary>
+    private bool hintsActive = false;
+>>>>>>> Stashed changes:Assets/ScriptableObjects/Settings/Scripts/Core/HintSystem.cs
 
     public event Action<int, int> OnHintChargesChanged;
 
@@ -59,11 +66,16 @@ public class HintSystem : MonoBehaviour
     public void ResetCharges()
     {
         RemainingHintCharges = Mathf.Max(0, maxHintCharges);
+<<<<<<< Updated upstream:Assets/Scripts/Core/HintSystem.cs
         HintsActive = false;
+=======
+        hintsActive = false;
+>>>>>>> Stashed changes:Assets/ScriptableObjects/Settings/Scripts/Core/HintSystem.cs
         OnHintChargesChanged?.Invoke(RemainingHintCharges, maxHintCharges);
     }
 
     /// <summary>
+<<<<<<< Updated upstream:Assets/Scripts/Core/HintSystem.cs
     /// Clears all hint numbers from every cell and marks hints as inactive.
     /// Call this whenever the target changes (correct star collected, constellation switched).
     /// The player must purchase hints again after each target change.
@@ -74,6 +86,17 @@ public class HintSystem : MonoBehaviour
         if (GridManager.Instance == null) return;
         GridManager.Instance.ForEachCell(cell => cell.ClearHint());
         Debug.Log("[HintSystem] Hints cleared — target changed.");
+=======
+    /// Clears all displayed hint numbers and marks hints as inactive.
+    /// Call this whenever the target star changes (correct collection,
+    /// constellation switch) so stale numbers don't mislead the player.
+    /// </summary>
+    public void ClearAllHints()
+    {
+        hintsActive = false;
+        if (GridManager.Instance == null) return;
+        GridManager.Instance.ForEachCell(cell => cell.ClearHint());
+>>>>>>> Stashed changes:Assets/ScriptableObjects/Settings/Scripts/Core/HintSystem.cs
     }
 
     /// <summary>
@@ -106,20 +129,29 @@ public class HintSystem : MonoBehaviour
         HintsActive = true; // unlock hint display for the current target
         OnHintChargesChanged?.Invoke(RemainingHintCharges, maxHintCharges);
 
+        hintsActive = true; // unlock hint display for the current target
         RefreshAllHints();
-        Debug.Log($"[HintSystem] Hint used. Remaining charges: {RemainingHintCharges}/{maxHintCharges}");
+        Debug.Log($"[HintSystem] Hint purchased. Remaining charges: {RemainingHintCharges}/{maxHintCharges}");
         return true;
     }
 
     /// <summary>
 >>>>>>> Stashed changes:Assets/ScriptableObjects/Settings/Scripts/Core/HintSystem.cs
     /// Recalculates hints for every Revealed cell based on the current target.
+<<<<<<< Updated upstream:Assets/Scripts/Core/HintSystem.cs
     /// Only runs when hints are currently active (player has paid for them).
+=======
+    /// Does nothing if hints haven't been purchased for this target yet.
+>>>>>>> Stashed changes:Assets/ScriptableObjects/Settings/Scripts/Core/HintSystem.cs
     /// Non-Revealed cells are untouched (their hint text is already blank).
     /// </summary>
     public void RefreshAllHints()
     {
+<<<<<<< Updated upstream:Assets/Scripts/Core/HintSystem.cs
         if (!HintsActive) return; // hints not purchased — nothing to show
+=======
+        if (!hintsActive) return; // only show hints after the player purchases them
+>>>>>>> Stashed changes:Assets/ScriptableObjects/Settings/Scripts/Core/HintSystem.cs
         if (GameManager.Instance == null || GridManager.Instance == null) return;
 
         Vector2Int targetPos = GameManager.Instance.GetCurrentTargetPosition();
@@ -153,7 +185,11 @@ public class HintSystem : MonoBehaviour
     /// </summary>
     public void RefreshCell(Cell cell)
     {
+<<<<<<< Updated upstream:Assets/Scripts/Core/HintSystem.cs
         if (!HintsActive) return; // hints not purchased — leave the cell blank
+=======
+        if (!hintsActive) return; // respect the purchase gate
+>>>>>>> Stashed changes:Assets/ScriptableObjects/Settings/Scripts/Core/HintSystem.cs
         if (GameManager.Instance == null) return;
 
         Vector2Int targetPos = GameManager.Instance.GetCurrentTargetPosition();

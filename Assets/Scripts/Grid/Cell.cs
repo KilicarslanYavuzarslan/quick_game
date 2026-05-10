@@ -64,6 +64,18 @@ public class Cell : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler
     [SerializeField] private Color collectedColor = new Color(0.102f, 0.102f, 0.180f);
     [SerializeField] private Color failedColor    = new Color(0.886f, 0.294f, 0.290f); // #E24B4A
 
+    // ── Star Colors ───────────────────────────────────────────────────────────
+
+    [Header("Star Colors")]
+    [Tooltip("Collected stars use the constellation's color from its ScriptableObject. " +
+             "1.0 = full brightness, lower values dim the star.")]
+    [Range(0f, 1f)]
+    [SerializeField] private float collectedStarBrightness = 1f;
+
+    [Tooltip("Failed stars can optionally use the constellation's color instead of the " +
+             "hardcoded red. Enable if you want color-coded failure feedback.")]
+    [SerializeField] private bool failedStarUsesConstellationColor = false;
+
     // ── Peeked (AreaReveal ability) ───────────────────────────────────────────
 
     [Header("Peeked (AreaReveal ability)")]
@@ -199,15 +211,29 @@ public class Cell : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler
 
             case CellState.Collected:
                 SetBackground(collectedSprite, collectedColor);
+<<<<<<< Updated upstream:Assets/Scripts/Grid/Cell.cs
                 // Full constellation color from the ScriptableObject — no dimming.
                 // Change the 'color' field in the ConstellationData SO to set per-constellation star color.
                 SetStarVisible(true, constellation != null ? constellation.color : Color.gray);
+=======
+                // Use the constellation's own color at the configured brightness.
+                // Keep star white in the prefab so color tinting works correctly.
+                SetStarVisible(true, constellation != null
+                    ? constellation.color * collectedStarBrightness
+                    : Color.gray);
+>>>>>>> Stashed changes:Assets/ScriptableObjects/Settings/Scripts/Grid/Cell.cs
                 if (hintText != null) hintText.text = "";
                 break;
 
             case CellState.Failed:
                 SetBackground(failedSprite, failedColor);
-                SetStarVisible(true, new Color(0.886f, 0.294f, 0.290f)); // #E24B4A
+                // By default shows red (clear "wrong" feedback).
+                // Toggle failedStarUsesConstellationColor in the prefab Inspector
+                // to show the constellation's color instead.
+                Color failedStarColor = (failedStarUsesConstellationColor && constellation != null)
+                    ? constellation.color
+                    : new Color(0.886f, 0.294f, 0.290f); // #E24B4A red
+                SetStarVisible(true, failedStarColor);
                 if (hintText != null) hintText.text = "";
                 break;
         }
